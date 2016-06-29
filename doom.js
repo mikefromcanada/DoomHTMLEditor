@@ -22,6 +22,8 @@ function LoadHeader()
 	WAD.header.identification = read4ByteCharacters(0);
 	WAD.header.numlumps = read4ByteNumber(4);
 	WAD.header.infotableofs = read4ByteNumber(8);
+	console.log(WAD.header.identification);
+	console.log(WAD.header.numlumps);
 	console.log('Header complete');
 }
 
@@ -57,7 +59,7 @@ function parseWAD()
 	
 	for (var i=0; i<WAD.header.numlumps; i++)
 	{
-	//console.log('LUMP: '+i+' '+WAD.lumps[i].name);
+	console.log('LUMP: '+i+' '+WAD.lumps[i].name);
 	
 		if (flats == true)
 		{
@@ -119,6 +121,7 @@ function parseWAD()
 	}
 	else
 	{
+	//console.log(WAD.lumps[i].name);
 	switch (WAD.lumps[i].name)
 	{
 	case "PLAYPAL\0":
@@ -404,6 +407,7 @@ function parseWAD()
 	case "E4M7\0\0\0\0":
 	case "E4M8\0\0\0\0":
 	case "E4M9\0\0\0\0":
+	case "MAP01\0\0\0":
 	//console.log(i);
 	addMap(i);
 	
@@ -1872,13 +1876,26 @@ function completeHandler(evt)
 	parseWAD();
 	
 	//parse the default values
-	parseSFX(document.getElementById('sfxSelector').value, false);
-	drawMap(document.getElementById('mapSelector').value);
-	parseFlat(document.getElementById('flatSelector').value);
-	parseTexture(document.getElementById('textureSelector').value);
-	parseImage(document.getElementById('enemyImageSelector').value);
-
+	//need to check if it's empty
+	if (document.getElementById('sfxSelector').value != ""){
+		parseSFX(document.getElementById('sfxSelector').value, false);
+	}
 	
+	if (document.getElementById('mapSelector').value != ""){
+		drawMap(document.getElementById('mapSelector').value);
+	}
+	
+	if (document.getElementById('flatSelector').value != ""){
+		parseFlat(document.getElementById('flatSelector').value);
+	}
+	
+	if (document.getElementById('textureSelector').value != ""){
+		parseTexture(document.getElementById('textureSelector').value);
+	}
+	
+	if (document.getElementById('enemyImageSelector').value != ""){
+		parseImage(document.getElementById('enemyImageSelector').value);
+	}
 	
 }
 
