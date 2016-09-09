@@ -21,7 +21,9 @@ Free shareware files can be obtained: <a href="http://www.dosgamers.com/dos/dos-
 
 <button id='image_tab' onclick="toggleVis('images')">Images</button><button id='flat_tab' onclick="toggleVis('flats')">Floor/Ceiling Textures</button>
 <button id='textures_tab' onclick="toggleVis('textures')">Wall Textures</button>
-<button id='map_tab' onclick="toggleVis('maps')">Maps</button><button id='sounds_tab'  onclick="toggleVis('sounds')">Sound and Music</button><button id='misc_tab'  onclick="toggleVis('misc')">Misc</button><br>
+<button id='map_tab' onclick="toggleVis('maps')">Maps</button><button id='sounds_tab'  onclick="toggleVis('sounds')">Sound and Music</button><button id='misc_tab'  onclick="toggleVis('misc')">Misc</button>
+<button id='debug_tab'  onclick="toggleVis('debug')">Debug</button>
+<br>
 
 
 <div id='images' style='position:absolute; top:150px; border:solid 1px black; visibility:hidden;font-family: Courier; font-size:10px'>
@@ -126,6 +128,13 @@ Original:<br>
 
 <div id='misc' style='position:absolute; top:150px; border:solid 1px black; visibility:hidden;font-family: Courier; font-size:10px'>
 Text on Exiting Game:<br><div id='endoom' style='font-family: Courier'></div>
+</div>
+<div id='debug' style='position:absolute; top:150px; border:solid 1px black; visibility:hidden;font-family: Courier; font-size:10px'>
+Debug List<br>
+Lumps<br>
+<select id='debugSelector'></select>
+Textures<br>
+<select id='debugPnames'></select>
 </div>
 
 

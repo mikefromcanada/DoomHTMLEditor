@@ -58,10 +58,11 @@ function parseWAD()
 	var sprites = false;
 	var map = false;
 	
-	
 	for (var i=0; i<WAD.header.numlumps; i++)
 	{
+	//Populate Debugging list
 	console.log('LUMP: '+i+' '+WAD.lumps[i].name);
+	addToDebug(i);
 	
 		if (flats == true)
 		{
@@ -76,6 +77,11 @@ function parseWAD()
 		{
 			flats = false;	
 		}
+		
+		else if (WAD.lumps[i].name == 'FF_END\0\0')
+		{
+			flats = false;	
+		}
 				
 		else
 		{
@@ -86,7 +92,7 @@ function parseWAD()
 	{
 	// we're parsing patches
 	
-		if (WAD.lumps[i].name == 'P_END\0\0\0')
+		if (WAD.lumps[i].name == 'P_END\0\0\0' || WAD.lumps[i].name == 'PP_END\0\0')
 		{
 			patches = false;	
 		}
@@ -105,7 +111,7 @@ function parseWAD()
 	else if (sprites == true)
 	{
 	// we're parsing sprites
-	if (WAD.lumps[i].name == 'S_END\0\0\0')
+	if (WAD.lumps[i].name == 'S_END\0\0\0' || WAD.lumps[i].name == 'SS_END\0\0')
 		{
 			sprites = false;	
 		}
@@ -154,6 +160,8 @@ function parseWAD()
 	case "AUTOPAGE":	
 	case "ENDPIC\0\0":
 	case "INTERPIC":
+	case "BOSSBACK":
+	case "HELP\0\0\0\0":
 	addOptionToImageSelector(i, 'miscImageSelector');
 	break;
 	
@@ -325,7 +333,10 @@ function parseWAD()
 	 case "S_START\0":
 	 sprites = true;
 	 break;
-	
+	 
+	 case "SS_START":
+	 sprites = true;
+	 break;
 	
 		//heretic images
 	case "TITLE\0\0\0":
@@ -347,8 +358,17 @@ function parseWAD()
 	flats = true;
 	break;
 	
+	case "FF_START":
+	//start flats
+	flats = true;
+	break;
+	
 	
 	case "P_START\0":
+	patches = true;
+	break;
+	
+	case "PP_START":
 	patches = true;
 	break;
 	
@@ -358,6 +378,9 @@ function parseWAD()
 	break;
 	
 	case "F_END\0\0\0":
+	break;
+	
+	case "FF_END\0\0":
 	break;
 	
 	
@@ -410,6 +433,37 @@ function parseWAD()
 	case "E4M8\0\0\0\0":
 	case "E4M9\0\0\0\0":
 	case "MAP01\0\0\0":
+	case "MAP02\0\0\0":
+	case "MAP03\0\0\0":
+	case "MAP04\0\0\0":
+	case "MAP05\0\0\0":
+	case "MAP06\0\0\0":
+	case "MAP07\0\0\0":
+	case "MAP08\0\0\0":
+	case "MAP09\0\0\0":
+	case "MAP10\0\0\0":
+	case "MAP11\0\0\0":
+	case "MAP12\0\0\0":
+	case "MAP13\0\0\0":
+	case "MAP14\0\0\0":
+	case "MAP15\0\0\0":
+	case "MAP16\0\0\0":
+	case "MAP17\0\0\0":
+	case "MAP18\0\0\0":
+	case "MAP19\0\0\0":
+	case "MAP20\0\0\0":
+	case "MAP21\0\0\0":
+	case "MAP22\0\0\0":
+	case "MAP23\0\0\0":
+	case "MAP24\0\0\0":
+	case "MAP25\0\0\0":
+	case "MAP26\0\0\0":
+	case "MAP27\0\0\0":
+	case "MAP28\0\0\0":
+	case "MAP29\0\0\0":
+	case "MAP30\0\0\0":
+	case "MAP31\0\0\0":
+	case "MAP32\0\0\0":
 	//console.log(i);
 	addMap(i);
 	
@@ -551,6 +605,10 @@ function parseWAD()
 	addOptionToSFXSelector(i);
 	break;
 	
+	//DoomED tag, discard
+	case "TAGDESC\0":
+	break;
+	
 	default:
 	
 	if (WAD.lumps[i].name.slice(0,2) == "D_")
@@ -639,6 +697,31 @@ function parseWAD()
 			}
 		}
 	}
+}
+
+function addToDebug(i)
+{
+	var selector = document.getElementById('debugSelector');
+	var option = document.createElement('option');
+	var name = document.createTextNode(i+' '+WAD.lumps[i].name);
+	
+	option.setAttribute('value', i);
+	option.appendChild(name);
+	selector.appendChild(option);
+}
+
+function addToDebugPnames(i)
+{
+	var selector = document.getElementById('debugPnames');
+	var option = document.createElement('option');
+	var name = document.createTextNode(i+' '+WAD.pnames[i].name);
+	
+	option.setAttribute('value', i);
+	option.appendChild(name);
+	selector.appendChild(option);
+
+
+
 }
 
 
@@ -1621,6 +1704,8 @@ function parsePNAMES(i)
 		WAD.pnames[j] = new Object();
 		WAD.pnames[j].name = read8ByteCharactersFromContent(i, pnameOffset);
 		pnameOffset = pnameOffset + 8;
+		//Debug
+		addToDebugPnames(j);
 	}
 
 	console.log('Parsing PNAMES complete');
@@ -1986,6 +2071,8 @@ function setPixel(x, width, y, height, r, g, b, a) {
 
 function findLump(name)
 {
+//remove
+console.log(name);
 	for (var i=0; i<WAD.header.numlumps; i++)
 	{
 		if (WAD.lumps[i].name == name)
@@ -2004,6 +2091,7 @@ function toggleVis(element)
 	document.getElementById('sounds').style.visibility= "hidden";
 	document.getElementById('misc').style.visibility= "hidden";
 	document.getElementById('textures').style.visibility= "hidden";
+	document.getElementById('debug').style.visibility= "hidden";
 	document.getElementById(element).style.visibility= "visible";
 }
 
