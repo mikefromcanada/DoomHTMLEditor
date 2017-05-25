@@ -1,84 +1,85 @@
-// Doom.js - Used to load a DOOM WAD
-// sample WAD here: http://www.dosgamers.com/dos/dos-games/doom-heretic-hexen
+// Doom.js - Used to load a DOOM PWAD
+// sample PWAD here: http://www.dosgamers.com/dos/dos-games/doom-heretic-hexen
 
-
-var WAD = new Object();
-WAD.file = "";
-//var WAD.fileLoc = 0;
-WAD.header = new Object();
-WAD.lumps = new Array();
-WAD.palette = new Array();
+var PWAD = new Object();
+//PWAD.file = "";
+////var PWAD.fileLoc = 0;
+//PWAD.header = new Object();
+//PWAD.lumps = new Array();
+//PWAD.palette = new Array();
 var imageData;
-WAD.textures = new Array();
-WAD.pnames = new Array();
-WAD.patches = new Array();
-WAD.maps = new Array();
+//PWAD.textures = new Array();
+//PWAD.pnames = new Array();
+//PWAD.patches = new Array();
+//PWAD.maps = new Array();
 
-WAD.context = new webkitAudioContext();
 
-function LoadHeader()
+
+//This is for PWADs only for now
+function LoadPWADHeader()
 {
-	console.log('Loading WAD header:');
-	WAD.header.identification = read4ByteCharacters(0);
-	WAD.header.numlumps = read4ByteNumber(4);
-	WAD.header.infotableofs = read4ByteNumber(8);
-	console.log(WAD.header.identification);
-	console.log(WAD.header.numlumps);
+	console.log('Loading PWAD header:');
+	PWAD.header.identification = read4ByteCharacters(0,PWAD);
+	PWAD.header.numlumps = read4ByteNumber(4,PWAD);
+	PWAD.header.infotableofs = read4ByteNumber(8,PWAD);
+	console.log(PWAD.header.identification);
+	console.log(PWAD.header.numlumps);
 	console.log('Header complete');
 }
 
-function LoadDirectory()
+function LoadPWADDirectory()
 {
-	console.log('Loading Lump Directory');
-	var directory = WAD.header.infotableofs;
+	console.log('Loading PWAD Lump Directory');
+	var directory = PWAD.header.infotableofs;
 
-	for (var i=0; i<WAD.header.numlumps; i++)
+	for (var i=0; i<PWAD.header.numlumps; i++)
 	{
-		WAD.lumps[i] = new Object();
-		WAD.lumps[i].filepos = read4ByteNumber(directory);
-		WAD.lumps[i].size = read4ByteNumber(directory+4);
-		WAD.lumps[i].name = read8ByteCharacters(directory+8);
-		WAD.lumps[i].content = WAD.file.slice(WAD.lumps[i].filepos , WAD.lumps[i].filepos + WAD.lumps[i].size);
+		PWAD.lumps[i] = new Object();
+		PWAD.lumps[i].filepos = read4ByteNumber(directory,PWAD);
+		PWAD.lumps[i].size = read4ByteNumber(directory+4,PWAD);
+		PWAD.lumps[i].name = read8ByteCharacters(directory+8,PWAD);
+		PWAD.lumps[i].content = PWAD.file.slice(PWAD.lumps[i].filepos , PWAD.lumps[i].filepos + PWAD.lumps[i].size);
 		directory = directory + 16;
-	
-		//WAD.lumps[i].content = window.atob(WAD.lumps[i].content);
+		
+		//console.log(PWAD.lumps[i].filepos,PWAD.lumps[i].size,PWAD.lumps[i].name);
+		console.log(window.atob(PWAD.lumps[i].content));
 	}
 	console.log('Lump Directory Complete');
 }
 
-function parseWAD()
+function parsePWAD()
 {
 	console.log('load default palette');
 	storeDefaultPalette();
 	
-	console.log('Parsing WAD lumps:');
+	console.log('Parsing PWAD lumps:');
 
 	var flats = false;
 	var patches = false;
 	var sprites = false;
 	var map = false;
 	
-	for (var i=0; i<WAD.header.numlumps; i++)
+	for (var i=0; i<PWAD.header.numlumps; i++)
 	{
 	//Populate Debugging list
-	console.log('LUMP: '+i+' '+WAD.lumps[i].name);
+	console.log('LUMP: '+i+' '+PWAD.lumps[i].name);
 	addToDebug(i);
 	
 		if (flats == true)
 		{
 		// we're parsing flats, if its the end flag, stop parsing flats
 	
-		if ((WAD.lumps[i].name.slice(0,2) == 'F1')||(WAD.lumps[i].name.slice(0,2) == 'F2'))
+		if ((PWAD.lumps[i].name.slice(0,2) == 'F1')||(PWAD.lumps[i].name.slice(0,2) == 'F2'))
 		{
 		// ignore the F1_START F2_END etc
 		
 		}
-		else if (WAD.lumps[i].name == 'F_END\0\0\0')
+		else if (PWAD.lumps[i].name == 'F_END\0\0\0')
 		{
 			flats = false;	
 		}
 		
-		else if (WAD.lumps[i].name == 'FF_END\0\0')
+		else if (PWAD.lumps[i].name == 'FF_END\0\0')
 		{
 			flats = false;	
 		}
@@ -92,7 +93,7 @@ function parseWAD()
 	{
 	// we're parsing patches
 	
-		if (WAD.lumps[i].name == 'P_END\0\0\0' || WAD.lumps[i].name == 'PP_END\0\0')
+		if (PWAD.lumps[i].name == 'P_END\0\0\0' || PWAD.lumps[i].name == 'PP_END\0\0')
 		{
 			patches = false;	
 		}
@@ -111,7 +112,7 @@ function parseWAD()
 	else if (sprites == true)
 	{
 	// we're parsing sprites
-	if (WAD.lumps[i].name == 'S_END\0\0\0' || WAD.lumps[i].name == 'SS_END\0\0')
+	if (PWAD.lumps[i].name == 'S_END\0\0\0' || PWAD.lumps[i].name == 'SS_END\0\0')
 		{
 			sprites = false;	
 		}
@@ -129,8 +130,8 @@ function parseWAD()
 	}
 	else
 	{
-	//console.log(WAD.lumps[i].name);
-	switch (WAD.lumps[i].name)
+	//console.log(PWAD.lumps[i].name);
+	switch (PWAD.lumps[i].name)
 	{
 	case "PLAYPAL\0":
 	// player palette
@@ -611,14 +612,14 @@ function parseWAD()
 	
 	default:
 	
-	if (WAD.lumps[i].name.slice(0,2) == "D_")
+	if (PWAD.lumps[i].name.slice(0,2) == "D_")
 	{ // MUSIC
 	
 		break;
 	
 	}
 	
-	if (WAD.lumps[i].name.slice(0,4) == "MUS_")
+	if (PWAD.lumps[i].name.slice(0,4) == "MUS_")
 	{ // MUSIC
 	
 		break;
@@ -627,20 +628,20 @@ function parseWAD()
 	
 	
 	
-	if (WAD.lumps[i].name.slice(0,2) == "DS")
+	if (PWAD.lumps[i].name.slice(0,2) == "DS")
 	{ // sfx
 	addOptionToSFXSelector(i);
 	break;
 	
 	}
 	
-	if (WAD.lumps[i].name.slice(0,2) == "DP")
+	if (PWAD.lumps[i].name.slice(0,2) == "DP")
 	{ // sfx
 	break;
 	
 	}
 	
-	if (WAD.lumps[i].name.slice(0,3) == "STF")
+	if (PWAD.lumps[i].name.slice(0,3) == "STF")
 	{ // UI
 	
 	addOptionToImageSelector(i, 'uiImageSelector');
@@ -649,7 +650,7 @@ function parseWAD()
 	
 	}
 	
-		if (WAD.lumps[i].name.slice(0,2) == "WI")
+		if (PWAD.lumps[i].name.slice(0,2) == "WI")
 	{ // UI
 	
 	addOptionToImageSelector(i, 'uiImageSelector');
@@ -658,7 +659,7 @@ function parseWAD()
 	
 	}
 
-	if (WAD.lumps[i].name.slice(0,4) == "FONT")
+	if (PWAD.lumps[i].name.slice(0,4) == "FONT")
 	{ // Heretic UI
 	
 	addOptionToImageSelector(i, 'uiImageSelector');
@@ -668,7 +669,7 @@ function parseWAD()
 	}
 	
 	
-			if (WAD.lumps[i].name.slice(0,4) == "BRDR")
+			if (PWAD.lumps[i].name.slice(0,4) == "BRDR")
 	{ // UI
 	
 	addOptionToImageSelector(i, 'uiImageSelector');
@@ -678,7 +679,7 @@ function parseWAD()
 	}
 	
 	
-		if (WAD.lumps[i].name.slice(0,2) == "M_")
+		if (PWAD.lumps[i].name.slice(0,2) == "M_")
 	{ // UI
 	
 	addOptionToImageSelector(i, 'uiImageSelector');
@@ -689,7 +690,7 @@ function parseWAD()
 	
 	
 	
-	console.log('Unknown Lump: '+WAD.lumps[i].name+' at '+i);
+	console.log('Unknown Lump: '+PWAD.lumps[i].name+' at '+i);
 	addOptionToImageSelector(i, 'uiImageSelector');
 	break;
 	
@@ -703,7 +704,7 @@ function addToDebug(i)
 {
 	var selector = document.getElementById('debugSelector');
 	var option = document.createElement('option');
-	var name = document.createTextNode(i+' '+WAD.lumps[i].name);
+	var name = document.createTextNode(i+' '+PWAD.lumps[i].name);
 	
 	option.setAttribute('value', i);
 	option.appendChild(name);
@@ -714,7 +715,7 @@ function addToDebugPnames(i)
 {
 	var selector = document.getElementById('debugPnames');
 	var option = document.createElement('option');
-	var name = document.createTextNode(i+' '+WAD.pnames[i].name);
+	var name = document.createTextNode(i+' '+PWAD.pnames[i].name);
 	
 	option.setAttribute('value', i);
 	option.appendChild(name);
@@ -730,7 +731,7 @@ function addOptionToSFXSelector(i)
 	
 	var selector = document.getElementById('sfxSelector');
 	var option = document.createElement('option');
-	var name = document.createTextNode(WAD.lumps[i].name);
+	var name = document.createTextNode(PWAD.lumps[i].name);
 	
 	option.setAttribute('value', i);
 	option.appendChild(name);
@@ -749,28 +750,28 @@ function parseSFX(i, autoPlay)
 {
 	var sfxOffset = 0;
 	
-	var start = read2ByteNumberFromContent(i, sfxOffset);
+	var start = read2ByteNumberFromContent(i, sfxOffset,PWAD);
 	sfxOffset = sfxOffset + 2;
 	
-	var sampleRate = read2ByteNumberFromContent(i, sfxOffset);
+	var sampleRate = read2ByteNumberFromContent(i, sfxOffset,PWAD);
 	sfxOffset = sfxOffset + 2;
 	
-	var samples = read2ByteNumberFromContent(i, sfxOffset);
+	var samples = read2ByteNumberFromContent(i, sfxOffset,PWAD);
 	sfxOffset = sfxOffset + 2;
 	
-	var end = read2ByteNumberFromContent(i, sfxOffset);
+	var end = read2ByteNumberFromContent(i, sfxOffset,PWAD);
 	sfxOffset = sfxOffset + 2;
 	
 	console.log(start+' '+sampleRate+' '+samples+' '+end);
 	
-	WAD.buffer = WAD.context.createBuffer(1, samples*2, sampleRate*2);
+	PWAD.buffer = PWAD.context.createBuffer(1, samples*2, sampleRate*2);
 	
 	
-	var buf = WAD.buffer.getChannelData(0);
+	var buf = PWAD.buffer.getChannelData(0);
 	
 	for (var j=0; j<samples*2; j = j+2)
 	{
-		var sample = read1ByteNumberFromContent(i, sfxOffset);
+		var sample = read1ByteNumberFromContent(i, sfxOffset,PWAD);
 		buf[j] = sample/255;
 		buf[j+1] = sample/255;	
 		sfxOffset++;
@@ -787,11 +788,11 @@ function playSFX()
 {
 	//console.log('playing current effect');
 	
-	WAD.source = WAD.context.createBufferSource(0);
-	WAD.source.buffer = WAD.buffer;
-	WAD.source.connect(WAD.context.destination);
-	//WAD.source.noteOn( WAD.context.currentTime);
-	WAD.source.noteOn(0);
+	PWAD.source = PWAD.context.createBufferSource(0);
+	PWAD.source.buffer = PWAD.buffer;
+	PWAD.source.connect(PWAD.context.destination);
+	//PWAD.source.noteOn( PWAD.context.currentTime);
+	PWAD.source.noteOn(0);
 	
 }
 
@@ -799,13 +800,13 @@ function playSFX()
 
 function addMap(i)
 {
-	var map_num = WAD.maps.length;
-	WAD.maps[map_num] = new Object();
+	var map_num = PWAD.maps.length;
+	PWAD.maps[map_num] = new Object();
 	
 	
 	var selector = document.getElementById('mapSelector');
 	var option = document.createElement('option');
-	var name = document.createTextNode(WAD.lumps[i].name);
+	var name = document.createTextNode(PWAD.lumps[i].name);
 	
 	option.setAttribute('value', map_num);
 	option.appendChild(name);
@@ -817,11 +818,11 @@ function addMap(i)
 
 function parseThings(i)
 {
-	var currentMap = WAD.maps.length - 1;
+	var currentMap = PWAD.maps.length - 1;
 	
-	WAD.maps[currentMap].things = new Array();
+	PWAD.maps[currentMap].things = new Array();
 	
-	var thingCount = WAD.lumps[i].content.length / 10;
+	var thingCount = PWAD.lumps[i].content.length / 10;
 
 	console.log('Parse Things for map: '+currentMap+' Thingcount: '+thingCount);
 	var thingOffset =0;
@@ -829,20 +830,20 @@ function parseThings(i)
 	for (var j=0; j<thingCount; j++)
 	{
 		
-		WAD.maps[currentMap].things[j] = new Object();
-		WAD.maps[currentMap].things[j].xPos = read2ByteSignedNumberFromContent(i, thingOffset);
+		PWAD.maps[currentMap].things[j] = new Object();
+		PWAD.maps[currentMap].things[j].xPos = read2ByteSignedNumberFromContent(i, thingOffset,PWAD);
 		thingOffset = thingOffset + 2;
 	
-		WAD.maps[currentMap].things[j].yPos = read2ByteSignedNumberFromContent(i, thingOffset);
+		PWAD.maps[currentMap].things[j].yPos = read2ByteSignedNumberFromContent(i, thingOffset,PWAD);
 		thingOffset = thingOffset + 2;
 
-		WAD.maps[currentMap].things[j].angle = read2ByteNumberFromContent(i, thingOffset);
+		PWAD.maps[currentMap].things[j].angle = read2ByteNumberFromContent(i, thingOffset,PWAD);
 		thingOffset = thingOffset + 2;
 		
-		WAD.maps[currentMap].things[j].type = read2ByteNumberFromContent(i, thingOffset);
+		PWAD.maps[currentMap].things[j].type = read2ByteNumberFromContent(i, thingOffset,PWAD);
 		thingOffset = thingOffset + 2;
 		
-		WAD.maps[currentMap].things[j].options = read2ByteNumberFromContent(i, thingOffset);
+		PWAD.maps[currentMap].things[j].options = read2ByteNumberFromContent(i, thingOffset,PWAD);
 		thingOffset = thingOffset + 2;
 		
 	}
@@ -855,9 +856,9 @@ function parseVertices(i)
 
 	
 
-	var currentMap = WAD.maps.length - 1;
-	WAD.maps[currentMap].vertices = new Array();
-	var vertexCount = WAD.lumps[i].content.length / 4;
+	var currentMap = PWAD.maps.length - 1;
+	PWAD.maps[currentMap].vertices = new Array();
+	var vertexCount = PWAD.lumps[i].content.length / 4;
 	var vertexOffset =0;
 
 	console.log('Parse Vertices for map: '+currentMap+' Vertex Count: '+vertexCount+' Lump: '+i);
@@ -867,14 +868,14 @@ function parseVertices(i)
 
 	for (var j=0; j<vertexCount; j++)
 	{
-		WAD.maps[currentMap].vertices[j] = new Object();
+		PWAD.maps[currentMap].vertices[j] = new Object();
 	
-		WAD.maps[currentMap].vertices[j].xPos = read2ByteSignedNumberFromContent(i, vertexOffset);
+		PWAD.maps[currentMap].vertices[j].xPos = read2ByteSignedNumberFromContent(i, vertexOffset,PWAD);
 		
 		
 		vertexOffset = vertexOffset + 2;
 	
-		WAD.maps[currentMap].vertices[j].yPos = read2ByteSignedNumberFromContent(i, vertexOffset);
+		PWAD.maps[currentMap].vertices[j].yPos = read2ByteSignedNumberFromContent(i, vertexOffset,PWAD);
 		
 		
 		vertexOffset = vertexOffset + 2;
@@ -882,36 +883,36 @@ function parseVertices(i)
 		
 		if (j==0)
 		{
-		WAD.maps[currentMap].minX = 	WAD.maps[currentMap].vertices[j].xPos;
-		WAD.maps[currentMap].maxX = 	WAD.maps[currentMap].vertices[j].xPos;
+		PWAD.maps[currentMap].minX = 	PWAD.maps[currentMap].vertices[j].xPos;
+		PWAD.maps[currentMap].maxX = 	PWAD.maps[currentMap].vertices[j].xPos;
 		
-		WAD.maps[currentMap].minY = 	WAD.maps[currentMap].vertices[j].yPos;
-		WAD.maps[currentMap].maxY = 	WAD.maps[currentMap].vertices[j].yPos;
+		PWAD.maps[currentMap].minY = 	PWAD.maps[currentMap].vertices[j].yPos;
+		PWAD.maps[currentMap].maxY = 	PWAD.maps[currentMap].vertices[j].yPos;
 		
 		
 		}
 		else
 		{
-			if (WAD.maps[currentMap].vertices[j].xPos > WAD.maps[currentMap].maxX)
+			if (PWAD.maps[currentMap].vertices[j].xPos > PWAD.maps[currentMap].maxX)
 			{
-				WAD.maps[currentMap].maxX = WAD.maps[currentMap].vertices[j].xPos;
+				PWAD.maps[currentMap].maxX = PWAD.maps[currentMap].vertices[j].xPos;
 		
 			}
 			
-			if (WAD.maps[currentMap].vertices[j].xPos < WAD.maps[currentMap].minX)
+			if (PWAD.maps[currentMap].vertices[j].xPos < PWAD.maps[currentMap].minX)
 			{
-				WAD.maps[currentMap].minX = WAD.maps[currentMap].vertices[j].xPos;
+				PWAD.maps[currentMap].minX = PWAD.maps[currentMap].vertices[j].xPos;
 		
 			}
-			if (WAD.maps[currentMap].vertices[j].yPos > WAD.maps[currentMap].maxY)
+			if (PWAD.maps[currentMap].vertices[j].yPos > PWAD.maps[currentMap].maxY)
 			{
-				WAD.maps[currentMap].maxY = WAD.maps[currentMap].vertices[j].yPos;
+				PWAD.maps[currentMap].maxY = PWAD.maps[currentMap].vertices[j].yPos;
 		
 			}
 			
-			if (WAD.maps[currentMap].vertices[j].yPos < WAD.maps[currentMap].minY)
+			if (PWAD.maps[currentMap].vertices[j].yPos < PWAD.maps[currentMap].minY)
 			{
-				WAD.maps[currentMap].minY= WAD.maps[currentMap].vertices[j].yPos;
+				PWAD.maps[currentMap].minY= PWAD.maps[currentMap].vertices[j].yPos;
 		
 			}			
 			
@@ -922,9 +923,9 @@ function parseVertices(i)
 
 function parseSectors(i)
 {
-	var currentMap = WAD.maps.length - 1;
-	WAD.maps[currentMap].sectors = new Array();	
-	var sectorCount = WAD.lumps[i].content.length / 26;
+	var currentMap = PWAD.maps.length - 1;
+	PWAD.maps[currentMap].sectors = new Array();	
+	var sectorCount = PWAD.lumps[i].content.length / 26;
 	
 	console.log('Parse sectors for map: '+currentMap+' Sector: '+sectorCount);
 	
@@ -932,26 +933,26 @@ function parseSectors(i)
 	
 	for (var j=0; j<sectorCount; j++)
 	{
-		WAD.maps[currentMap].sectors[j] = new Object();
-		WAD.maps[currentMap].sectors[j].floorHeight = read2ByteSignedNumberFromContent(i, sectorOffset);
+		PWAD.maps[currentMap].sectors[j] = new Object();
+		PWAD.maps[currentMap].sectors[j].floorHeight = read2ByteSignedNumberFromContent(i, sectorOffset,PWAD);
 		sectorOffset = sectorOffset + 2;
 		
-		WAD.maps[currentMap].sectors[j].ceilingHeight = read2ByteSignedNumberFromContent(i, sectorOffset);
+		PWAD.maps[currentMap].sectors[j].ceilingHeight = read2ByteSignedNumberFromContent(i, sectorOffset,PWAD);
 		sectorOffset = sectorOffset + 2;
 		
-		WAD.maps[currentMap].sidedefs[j].ceilingFlat = read8ByteCharactersFromContent(i,sectorOffset);
+		PWAD.maps[currentMap].sidedefs[j].ceilingFlat = read8ByteCharactersFromContent(i,sectorOffset,PWAD);
 		sectorOffset = sectorOffset + 8;
 		
-		WAD.maps[currentMap].sidedefs[j].floorFlat = read8ByteCharactersFromContent(i,sectorOffset);
+		PWAD.maps[currentMap].sidedefs[j].floorFlat = read8ByteCharactersFromContent(i,sectorOffset,PWAD);
 		sectorOffset = sectorOffset + 8;		
 	
-		WAD.maps[currentMap].sectors[j].lightLevel = read2ByteNumberFromContent(i, sectorOffset);
+		PWAD.maps[currentMap].sectors[j].lightLevel = read2ByteNumberFromContent(i, sectorOffset,PWAD);
 		sectorOffset = sectorOffset + 2;	
 		
-		WAD.maps[currentMap].sectors[j].specialSector = read2ByteNumberFromContent(i, sectorOffset);
+		PWAD.maps[currentMap].sectors[j].specialSector = read2ByteNumberFromContent(i, sectorOffset,PWAD);
 		sectorOffset = sectorOffset + 2;	
 		
-		WAD.maps[currentMap].sectors[j].tagNumber = read2ByteNumberFromContent(i, sectorOffset);
+		PWAD.maps[currentMap].sectors[j].tagNumber = read2ByteNumberFromContent(i, sectorOffset,PWAD);
 		sectorOffset = sectorOffset + 2;	
 		
 	}
@@ -960,11 +961,11 @@ function parseSectors(i)
 
 function parseSideDefs(i)
 {
-	var currentMap = WAD.maps.length - 1;
+	var currentMap = PWAD.maps.length - 1;
 	
-	WAD.maps[currentMap].sidedefs = new Array();
+	PWAD.maps[currentMap].sidedefs = new Array();
 	
-	var sideCount = WAD.lumps[i].content.length / 30;
+	var sideCount = PWAD.lumps[i].content.length / 30;
 	
 	console.log('Parse SideDefs for map: '+currentMap+' Sidecount: '+sideCount);
 	
@@ -972,25 +973,25 @@ function parseSideDefs(i)
 	
 	for (var j=0; j<sideCount; j++)
 	{
-		WAD.maps[currentMap].sidedefs[j] = new Object();
+		PWAD.maps[currentMap].sidedefs[j] = new Object();
 		
-		WAD.maps[currentMap].sidedefs[j].xOffset = read2ByteSignedNumberFromContent(i, sideOffset);
+		PWAD.maps[currentMap].sidedefs[j].xOffset = read2ByteSignedNumberFromContent(i, sideOffset,PWAD);
 		sideOffset = sideOffset + 2;
 		
-		WAD.maps[currentMap].sidedefs[j].yOffset = read2ByteSignedNumberFromContent(i, sideOffset);
+		PWAD.maps[currentMap].sidedefs[j].yOffset = read2ByteSignedNumberFromContent(i, sideOffset,PWAD);
 		sideOffset = sideOffset + 2;
 		
-		WAD.maps[currentMap].sidedefs[j].upperTexture = read8ByteCharactersFromContent(i,sideOffset);
+		PWAD.maps[currentMap].sidedefs[j].upperTexture = read8ByteCharactersFromContent(i,sideOffset,PWAD);
 		sideOffset = sideOffset + 8;
 		
-		WAD.maps[currentMap].sidedefs[j].lowerTexture = read8ByteCharactersFromContent(i,sideOffset);
+		PWAD.maps[currentMap].sidedefs[j].lowerTexture = read8ByteCharactersFromContent(i,sideOffset,PWAD);
 		sideOffset = sideOffset + 8;
 		
-		WAD.maps[currentMap].sidedefs[j].middleTexture = read8ByteCharactersFromContent(i,sideOffset);
+		PWAD.maps[currentMap].sidedefs[j].middleTexture = read8ByteCharactersFromContent(i,sideOffset,PWAD);
 		sideOffset = sideOffset + 8;
 		
 		
-		WAD.maps[currentMap].sidedefs[j].sector = read2ByteSignedNumberFromContent(i, sideOffset);
+		PWAD.maps[currentMap].sidedefs[j].sector = read2ByteSignedNumberFromContent(i, sideOffset,PWAD);
 		sideOffset = sideOffset + 2;
 		
 	}
@@ -1001,11 +1002,11 @@ function parseSideDefs(i)
 
 function parseLineDefs(i)
 {
-	var currentMap = WAD.maps.length - 1;
+	var currentMap = PWAD.maps.length - 1;
 	
-	WAD.maps[currentMap].linedefs = new Array();
+	PWAD.maps[currentMap].linedefs = new Array();
 	
-	var lineCount = WAD.lumps[i].content.length / 14;
+	var lineCount = PWAD.lumps[i].content.length / 14;
 
 	console.log('Parse LineDefs for map: '+currentMap+' Linecount: '+lineCount);
 	var lineOffset =0;
@@ -1013,27 +1014,27 @@ function parseLineDefs(i)
 	for (var j=0; j<lineCount; j++)
 	{
 		
-		WAD.maps[currentMap].linedefs[j] = new Object();
+		PWAD.maps[currentMap].linedefs[j] = new Object();
 		
-		WAD.maps[currentMap].linedefs[j].startVertex = read2ByteNumberFromContent(i, lineOffset);
+		PWAD.maps[currentMap].linedefs[j].startVertex = read2ByteNumberFromContent(i, lineOffset,PWAD);
 		lineOffset = lineOffset + 2;
 		
-		WAD.maps[currentMap].linedefs[j].endVertex = read2ByteNumberFromContent(i, lineOffset);
+		PWAD.maps[currentMap].linedefs[j].endVertex = read2ByteNumberFromContent(i, lineOffset,PWAD);
 		lineOffset = lineOffset + 2;
 		
-		WAD.maps[currentMap].linedefs[j].flags = read2ByteNumberFromContent(i, lineOffset);
+		PWAD.maps[currentMap].linedefs[j].flags = read2ByteNumberFromContent(i, lineOffset,PWAD);
 		lineOffset = lineOffset + 2;
 		
-		WAD.maps[currentMap].linedefs[j].type = read2ByteNumberFromContent(i, lineOffset);
+		PWAD.maps[currentMap].linedefs[j].type = read2ByteNumberFromContent(i, lineOffset,PWAD);
 		lineOffset = lineOffset + 2;
 		
-		WAD.maps[currentMap].linedefs[j].trigger = read2ByteNumberFromContent(i, lineOffset);
+		PWAD.maps[currentMap].linedefs[j].trigger = read2ByteNumberFromContent(i, lineOffset,PWAD);
 		lineOffset = lineOffset + 2;
 		
-		WAD.maps[currentMap].linedefs[j].rightSideDef = read2ByteNumberFromContent(i, lineOffset);
+		PWAD.maps[currentMap].linedefs[j].rightSideDef = read2ByteNumberFromContent(i, lineOffset,PWAD);
 		lineOffset = lineOffset + 2;
 		
-		WAD.maps[currentMap].linedefs[j].leftSideDef = read2ByteNumberFromContent(i, lineOffset);
+		PWAD.maps[currentMap].linedefs[j].leftSideDef = read2ByteNumberFromContent(i, lineOffset,PWAD);
 		lineOffset = lineOffset + 2;
 		
 	}
@@ -1052,8 +1053,8 @@ function drawMap(i)
 {
 	var canvas = document.getElementById('mapViewer');
 
-	canvas.width=WAD.maps[i].maxX - WAD.maps[i].minX;
-	canvas.height=WAD.maps[i].maxY - WAD.maps[i].minY;
+	canvas.width=PWAD.maps[i].maxX - PWAD.maps[i].minX;
+	canvas.height=PWAD.maps[i].maxY - PWAD.maps[i].minY;
 	
 	
 	//var mapDiv = 64;
@@ -1066,33 +1067,33 @@ function drawMap(i)
 	ctx.fillRect(0,0,canvas.width,canvas.height);
 	
 	
-	var xOffset = 0 - WAD.maps[i].minX;
-	var yOffset = 0 - WAD.maps[i].minY;
+	var xOffset = 0 - PWAD.maps[i].minX;
+	var yOffset = 0 - PWAD.maps[i].minY;
 	
 	
 	//draw vertexes
 	ctx.fillStyle = 'yellow';
-	for (var j=0; j<WAD.maps[i].vertices.length; j++)
+	for (var j=0; j<PWAD.maps[i].vertices.length; j++)
 	{
 	
-	 WAD.maps[i].vertices[j].calcxPos = Math.floor(WAD.maps[i].vertices[j].xPos + xOffset);
-	WAD.maps[i].vertices[j].calcyPos = Math.floor(WAD.maps[i].vertices[j].yPos + yOffset);
+	 PWAD.maps[i].vertices[j].calcxPos = Math.floor(PWAD.maps[i].vertices[j].xPos + xOffset);
+	PWAD.maps[i].vertices[j].calcyPos = Math.floor(PWAD.maps[i].vertices[j].yPos + yOffset);
 	
 	
 	//flip the map
-	WAD.maps[i].vertices[j].calcyPos = canvas.height - WAD.maps[i].vertices[j].calcyPos;
+	PWAD.maps[i].vertices[j].calcyPos = canvas.height - PWAD.maps[i].vertices[j].calcyPos;
 	
-	ctx.fillRect(WAD.maps[i].vertices[j].calcxPos-2, WAD.maps[i].vertices[j].calcyPos-2, 5, 5);
+	ctx.fillRect(PWAD.maps[i].vertices[j].calcxPos-2, PWAD.maps[i].vertices[j].calcyPos-2, 5, 5);
 	
 	}
 	
 	//draw linedefs
 	
-	for (var j=0; j<WAD.maps[i].linedefs.length; j++)
+	for (var j=0; j<PWAD.maps[i].linedefs.length; j++)
 	{
 		
-		var start = WAD.maps[i].linedefs[j].startVertex;
-		var end = WAD.maps[i].linedefs[j].endVertex;
+		var start = PWAD.maps[i].linedefs[j].startVertex;
+		var end = PWAD.maps[i].linedefs[j].endVertex;
 		
 
 		
@@ -1100,33 +1101,33 @@ function drawMap(i)
 		ctx.strokeStyle='red';
 		
 			//if two sided, draw in grey
-		if ((WAD.maps[i].linedefs[j].flags & 0x4) == 0x4)
+		if ((PWAD.maps[i].linedefs[j].flags & 0x4) == 0x4)
 		{
 			ctx.strokeStyle='grey';
 		}
 		
 		
 		//if secret, draw in blue
-		if ((WAD.maps[i].linedefs[j].flags & 0x20) == 0x20)
+		if ((PWAD.maps[i].linedefs[j].flags & 0x20) == 0x20)
 		{
 			ctx.strokeStyle='blue';
 		}
 
 		ctx.lineWidth=4;
 		ctx.beginPath();
-		ctx.moveTo( WAD.maps[i].vertices[start].calcxPos, WAD.maps[i].vertices[start].calcyPos);
-		ctx.lineTo( WAD.maps[i].vertices[end].calcxPos, WAD.maps[i].vertices[end].calcyPos);
+		ctx.moveTo( PWAD.maps[i].vertices[start].calcxPos, PWAD.maps[i].vertices[start].calcyPos);
+		ctx.lineTo( PWAD.maps[i].vertices[end].calcxPos, PWAD.maps[i].vertices[end].calcyPos);
 		ctx.stroke();
 	
 	}
 	
 	// draw the things
 	
-	for (var j=0; j<WAD.maps[i].things.length; j++)
+	for (var j=0; j<PWAD.maps[i].things.length; j++)
 	{
 	
 	
-		switch(WAD.maps[i].things[j].type)
+		switch(PWAD.maps[i].things[j].type)
 		{
 		// player spawns
 		case 1:
@@ -1220,14 +1221,14 @@ function drawMap(i)
 		
 		}
 		
-		WAD.maps[i].things[j].calcxPos = Math.floor(WAD.maps[i].things[j].xPos + xOffset);
-		WAD.maps[i].things[j].calcyPos = Math.floor(WAD.maps[i].things[j].yPos + yOffset);
+		PWAD.maps[i].things[j].calcxPos = Math.floor(PWAD.maps[i].things[j].xPos + xOffset);
+		PWAD.maps[i].things[j].calcyPos = Math.floor(PWAD.maps[i].things[j].yPos + yOffset);
 	
 	
 		//flip the y pos
-		WAD.maps[i].things[j].calcyPos = canvas.height - WAD.maps[i].things[j].calcyPos;
+		PWAD.maps[i].things[j].calcyPos = canvas.height - PWAD.maps[i].things[j].calcyPos;
 	
-		ctx.fillRect(WAD.maps[i].things[j].calcxPos-3, WAD.maps[i].things[j].calcyPos-3, 7, 7);
+		ctx.fillRect(PWAD.maps[i].things[j].calcxPos-3, PWAD.maps[i].things[j].calcyPos-3, 7, 7);
 	
 	}
 	
@@ -1277,7 +1278,7 @@ function parseFlat(i)
 	var canvas = document.getElementById('flatViewer');
 	var ctx = canvas.getContext("2d");
 
-	//var flat_data = WAD.lumps[i].content;
+	//var flat_data = PWAD.lumps[i].content;
 	var flat_offset = 0;
 	
 	canvas.width = 64;
@@ -1299,9 +1300,9 @@ function parseFlat(i)
 	{
 		for (var k=0; k<64; k++)
 		{
-		var pal = read1ByteNumberFromContent(i, flat_offset);
+		var pal = read1ByteNumberFromContent(i, flat_offset,PWAD);
 		//console.log(j+' '+k+' '+flat_offset+' '+pal);
-		setPixel(k, canvas.width, j, canvas.height, WAD.palette[pal].r, WAD.palette[pal].g, WAD.palette[pal].b, 255); 
+		setPixel(k, canvas.width, j, canvas.height, PWAD.palette[pal].r, PWAD.palette[pal].g, PWAD.palette[pal].b, 255); 
 		flat_offset++;
 		
 		
@@ -1347,7 +1348,7 @@ function addOptionToFlatSelector(i)
 {
 	var selector = document.getElementById('flatSelector');
 	var option = document.createElement('option');
-	var name = document.createTextNode(WAD.lumps[i].name);
+	var name = document.createTextNode(PWAD.lumps[i].name);
 	
 	//console.log('adding option '+i+' '+name);
 	option.setAttribute('value', i);
@@ -1364,7 +1365,7 @@ function addOptionToImageSelector(i, element)
 
 	var selector = document.getElementById(element);
 	var option = document.createElement('option');
-	var name = document.createTextNode(WAD.lumps[i].name);
+	var name = document.createTextNode(PWAD.lumps[i].name);
 	
 	//console.log('adding option '+i+' '+name);
 	option.setAttribute('value', i);
@@ -1377,7 +1378,7 @@ function addOptionToTextureSelector(j)
 
 	var selector = document.getElementById('textureSelector');
 	var option = document.createElement('option');
-	var name = document.createTextNode(WAD.textures[j].name);
+	var name = document.createTextNode(PWAD.textures[j].name);
 	
 	//console.log('adding option '+i+' '+name);
 	option.setAttribute('value', j);
@@ -1401,12 +1402,12 @@ function parseImage(i)
 	var canvas = document.getElementById('imageViewer');
 	var ctx = canvas.getContext("2d");
 
-	var image_data = WAD.lumps[i].content;
+	var image_data = PWAD.lumps[i].content;
 
-	var header_width = read2ByteNumberFromContent(i, 0);
-	var header_height = read2ByteNumberFromContent(i,2);
-	var header_left_offset = read2ByteNumberFromContent(i,4);
-	var header_top_offset = read2ByteNumberFromContent(i,6);
+	var header_width = read2ByteNumberFromContent(i, 0,PWAD);
+	var header_height = read2ByteNumberFromContent(i,2,PWAD);
+	var header_left_offset = read2ByteNumberFromContent(i,4,PWAD);
+	var header_top_offset = read2ByteNumberFromContent(i,6,PWAD);
 
 	canvas.width = header_width;
 	canvas.height = header_height;
@@ -1422,13 +1423,13 @@ function parseImage(i)
 	imageData = ctx.getImageData(0,0,header_width, header_height);
 	
 	//create the columns array
-	WAD.lumps[i].columns = new Array();
+	PWAD.lumps[i].columns = new Array();
 	
 	// for each column, save a record
 	for (var j=0; j<header_width; j++)
 	{
-		WAD.lumps[i].columns[j] = new Object();
-		WAD.lumps[i].columns[j].offset = read4ByteNumberFromContent(i, post_offset);
+		PWAD.lumps[i].columns[j] = new Object();
+		PWAD.lumps[i].columns[j].offset = read4ByteNumberFromContent(i, post_offset,PWAD);
 		post_offset = post_offset + 4;
 	
 	}
@@ -1441,21 +1442,21 @@ function parseImage(i)
 	// start looking for posts
 	
 		var column_complete = false;
-		var image_offset = WAD.lumps[i].columns[j].offset;
+		var image_offset = PWAD.lumps[i].columns[j].offset;
 	
 
 		while(column_complete == false)
 		{
 		
-			if (read1ByteNumberFromContent(i, image_offset) == 255)
+			if (read1ByteNumberFromContent(i, image_offset,PWAD) == 255)
 			{
 			//empty column... move to next column
 				column_complete = true;
 			}
 			else
 			{
-				var row_start = read1ByteNumberFromContent(i, image_offset);
-				var row_count = read1ByteNumberFromContent(i, image_offset + 1);
+				var row_start = read1ByteNumberFromContent(i, image_offset,PWAD);
+				var row_count = read1ByteNumberFromContent(i, image_offset + 1,PWAD);
 		
 				image_offset = image_offset + 3; // row_start + count + not_drawn
 		
@@ -1464,9 +1465,9 @@ function parseImage(i)
 				for (var k=row_start; k<(row_start + row_count); k++)
 				{
 		
-					var pal = read1ByteNumberFromContent(i, image_offset);
+					var pal = read1ByteNumberFromContent(i, image_offset,PWAD);
 					//console.log(pal);
-					setPixel(j, canvas.width, k, canvas.height, WAD.palette[pal].r, WAD.palette[pal].g, WAD.palette[pal].b, 255); 
+					setPixel(j, canvas.width, k, canvas.height, PWAD.palette[pal].r, PWAD.palette[pal].g, PWAD.palette[pal].b, 255); 
 		
 					image_offset++;
 		
@@ -1519,7 +1520,7 @@ canvas.height = 256;
 var ctx = canvas.getContext("2d");
 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-var palettes = WAD.lumps[i].content;
+var palettes = PWAD.lumps[i].content;
 
 var pal_i = 0;
 
@@ -1528,10 +1529,10 @@ for (var i=0; i<256; i++)
 	ctx.fillStyle = 'rgb('+palettes.charCodeAt(pal_i)+','+palettes.charCodeAt(pal_i+1)+','+palettes.charCodeAt(pal_i + 2)+')';
 	ctx.fillRect(Math.floor(i/16)*16,i%16*16, 16, 16);
 
-	WAD.palette[i] = new Object();
-	WAD.palette[i].r = palettes.charCodeAt(pal_i);
-	WAD.palette[i].g = palettes.charCodeAt(pal_i+1);
-	WAD.palette[i].b = palettes.charCodeAt(pal_i+2);
+	PWAD.palette[i] = new Object();
+	PWAD.palette[i].r = palettes.charCodeAt(pal_i);
+	PWAD.palette[i].g = palettes.charCodeAt(pal_i+1);
+	PWAD.palette[i].b = palettes.charCodeAt(pal_i+2);
 	
 		pal_i = pal_i + 3;
 }
@@ -1544,7 +1545,7 @@ function parseEnDoom(i)
 	var source_text = "";
 	var result_text = "";
 	
-	source_text = WAD.lumps[i].content;
+	source_text = PWAD.lumps[i].content;
 
 	for (var j=0; j<4000; j = j+2)
 	{
@@ -1687,8 +1688,8 @@ return result_text;
 
 function addToPatchLibrary(i)
 {
-	WAD.patches[i] = new Object();
-	WAD.patches[i].id = i;
+	PWAD.patches[i] = new Object();
+	PWAD.patches[i].id = i;
 }
 
 function parsePNAMES(i)
@@ -1696,13 +1697,13 @@ function parsePNAMES(i)
 	console.log('Parsing PNAMES');
 	var pnameOffset = 0;
 	
-	var pnameCount = read4ByteNumberFromContent(i, pnameOffset);
+	var pnameCount = read4ByteNumberFromContent(i, pnameOffset,PWAD);
 	pnameOffset = pnameOffset + 4;
 
 	for (var j=0; j<pnameCount; j++)
 	{
-		WAD.pnames[j] = new Object();
-		WAD.pnames[j].name = read8ByteCharactersFromContent(i, pnameOffset);
+		PWAD.pnames[j] = new Object();
+		PWAD.pnames[j].name = read8ByteCharactersFromContent(i, pnameOffset,PWAD);
 		pnameOffset = pnameOffset + 8;
 		//Debug
 		addToDebugPnames(j);
@@ -1716,22 +1717,22 @@ function parsePNAMES(i)
 
 function parseTexture(i)
 {
-	console.log('Parsing texture = '+i+' '+WAD.textures[i].name);
+	console.log('Parsing texture = '+i+' '+PWAD.textures[i].name);
 	
 	var canvas = document.getElementById('textureViewer');
 	var ctx = canvas.getContext("2d");
 	
-	canvas.width = WAD.textures[i].width;
-	canvas.height = WAD.textures[i].height;
+	canvas.width = PWAD.textures[i].width;
+	canvas.height = PWAD.textures[i].height;
 	
 	imageData = ctx.getImageData(0,0,canvas.width, canvas.height);
 	//console.log(imageData);
 	
 	
-	for (var j=0; j<WAD.textures[i].patchCount; j++)
+	for (var j=0; j<PWAD.textures[i].patchCount; j++)
 	{
 	// for each patch, apply them to the canvas
-	drawPatch(findLump(WAD.pnames[WAD.textures[i].patches[j].pNum].name),WAD.textures[i].patches[j].xOffset, WAD.textures[i].patches[j].yOffset, canvas.width, canvas.height );
+	drawPatch(findLump(PWAD.pnames[PWAD.textures[i].patches[j].pNum].name),PWAD.textures[i].patches[j].xOffset, PWAD.textures[i].patches[j].yOffset, canvas.width, canvas.height );
 	
 	}
 
@@ -1779,10 +1780,10 @@ function drawPatch(i, xOffset, yOffset, imageWidth, imageHeight)
 	var canvas = document.getElementById('textureViewer');
 	var ctx = canvas.getContext("2d");
 
-	var header_width = read2ByteNumberFromContent(i, 0);
-	var header_height = read2ByteNumberFromContent(i,2);
-	var header_left_offset = read2ByteNumberFromContent(i,4);
-	var header_top_offset = read2ByteNumberFromContent(i,6);
+	var header_width = read2ByteNumberFromContent(i, 0,PWAD);
+	var header_height = read2ByteNumberFromContent(i,2,PWAD);
+	var header_left_offset = read2ByteNumberFromContent(i,4,PWAD);
+	var header_top_offset = read2ByteNumberFromContent(i,6,PWAD);
 
 	//canvas.width = header_width;
 	//canvas.height = header_height;
@@ -1792,17 +1793,17 @@ function drawPatch(i, xOffset, yOffset, imageWidth, imageHeight)
 	var post_offset = 8;
 	
 	//create the columns array
-	WAD.lumps[i].columns = new Array();
+	PWAD.lumps[i].columns = new Array();
 	
 	// for each column, save a record
 	
 	for (var j=0; j<header_width; j++)
 	{
 		//console.log('.');
-		WAD.lumps[i].columns[j] = new Object();
-		WAD.lumps[i].columns[j].offset = read4ByteNumberFromContent(i, post_offset);
+		PWAD.lumps[i].columns[j] = new Object();
+		PWAD.lumps[i].columns[j].offset = read4ByteNumberFromContent(i, post_offset,PWAD);
 		post_offset = post_offset + 4;
-		//WAD.lumps[i].columns[j].data = new Array();
+		//PWAD.lumps[i].columns[j].data = new Array();
 	
 	}
 	
@@ -1814,21 +1815,21 @@ function drawPatch(i, xOffset, yOffset, imageWidth, imageHeight)
 	// start looking for posts
 	
 		var column_complete = false;
-		var image_offset = WAD.lumps[i].columns[j].offset;
+		var image_offset = PWAD.lumps[i].columns[j].offset;
 	
 
 		while(column_complete == false)
 		{
 		
-			if (read1ByteNumberFromContent(i, image_offset) == 255)
+			if (read1ByteNumberFromContent(i, image_offset,PWAD) == 255)
 			{
 			//empty column... move to next column
 				column_complete = true;
 			}
 			else
 			{
-				var row_start = read1ByteNumberFromContent(i, image_offset);
-				var row_count = read1ByteNumberFromContent(i, image_offset + 1);
+				var row_start = read1ByteNumberFromContent(i, image_offset,PWAD);
+				var row_count = read1ByteNumberFromContent(i, image_offset + 1,PWAD);
 		
 				image_offset = image_offset + 3; // row_start + count + not_drawn
 		
@@ -1837,9 +1838,9 @@ function drawPatch(i, xOffset, yOffset, imageWidth, imageHeight)
 				for (var k=row_start; k<(row_start + row_count); k++)
 				{
 		
-					var pal = read1ByteNumberFromContent(i, image_offset);
+					var pal = read1ByteNumberFromContent(i, image_offset,PWAD);
 					//console.log(pal);
-					setPixel(j+xOffset, imageWidth, k+yOffset, imageHeight, WAD.palette[pal].r, WAD.palette[pal].g, WAD.palette[pal].b, 255); 
+					setPixel(j+xOffset, imageWidth, k+yOffset, imageHeight, PWAD.palette[pal].r, PWAD.palette[pal].g, PWAD.palette[pal].b, 255); 
 		
 					image_offset++;
 				
@@ -1856,19 +1857,19 @@ function drawPatch(i, xOffset, yOffset, imageWidth, imageHeight)
 function parseTextureDirectory(i)
 {
 	console.log('Parsing Texture Directory - '+i);
-	var textureDir = WAD.lumps[i];
+	var textureDir = PWAD.lumps[i];
 
 
 	var textureOffset = 0;
-	var numTextures = read4ByteNumberFromContent(i, textureOffset);
+	var numTextures = read4ByteNumberFromContent(i, textureOffset,PWAD);
 	
 	textureOffset = textureOffset + 4;
 	
 	//texture directory
 	for (var j=0; j<numTextures; j++)
 	{
-	WAD.textures[j] = new Object();
-	WAD.textures[j].offset = read4ByteNumberFromContent(i, textureOffset);
+	PWAD.textures[j] = new Object();
+	PWAD.textures[j].offset = read4ByteNumberFromContent(i, textureOffset,PWAD);
 	
 	textureOffset= textureOffset + 4;
 	
@@ -1876,46 +1877,46 @@ function parseTextureDirectory(i)
 	// texture definitions
 	for (var j=0; j<numTextures; j++)
 	{
-		WAD.textures[j].name = read8ByteCharactersFromContent(i, textureOffset);
+		PWAD.textures[j].name = read8ByteCharactersFromContent(i, textureOffset,PWAD);
 		textureOffset = textureOffset + 8;
-		//console.log(WAD.textures[j].name);
+		//console.log(PWAD.textures[j].name);
 	
 		// there are 2x2 byte fields of 0 we should skip
 		textureOffset = textureOffset + 4;
 		
-		WAD.textures[j].width = read2ByteNumberFromContent(i, textureOffset);
+		PWAD.textures[j].width = read2ByteNumberFromContent(i, textureOffset,PWAD);
 		textureOffset = textureOffset + 2;
-		WAD.textures[j].height = read2ByteNumberFromContent(i, textureOffset);
+		PWAD.textures[j].height = read2ByteNumberFromContent(i, textureOffset,PWAD);
 		textureOffset = textureOffset + 2;
 		
 		// there are 2x2 byte fields of 0 we should skip
 		textureOffset = textureOffset + 4;
 		
-		WAD.textures[j].patchCount = read2ByteNumberFromContent(i, textureOffset);
+		PWAD.textures[j].patchCount = read2ByteNumberFromContent(i, textureOffset,PWAD);
 		textureOffset = textureOffset + 2;
 		
 		addOptionToTextureSelector(j);
 		
 		
-		WAD.textures[j].patches = new Array();
+		PWAD.textures[j].patches = new Array();
 		
-		for (var k=0; k<WAD.textures[j].patchCount; k++)
+		for (var k=0; k<PWAD.textures[j].patchCount; k++)
 		{
 		
-			WAD.textures[j].patches[k] = new Object();
-			WAD.textures[j].patches[k].xOffset = read2ByteSignedNumberFromContent(i, textureOffset);
+			PWAD.textures[j].patches[k] = new Object();
+			PWAD.textures[j].patches[k].xOffset = read2ByteSignedNumberFromContent(i, textureOffset,PWAD);
 			textureOffset = textureOffset + 2;
 		
-			WAD.textures[j].patches[k].yOffset = read2ByteSignedNumberFromContent(i, textureOffset);
+			PWAD.textures[j].patches[k].yOffset = read2ByteSignedNumberFromContent(i, textureOffset,PWAD);
 			textureOffset = textureOffset + 2;
 		
-			WAD.textures[j].patches[k].pNum = read2ByteNumberFromContent(i, textureOffset);
+			PWAD.textures[j].patches[k].pNum = read2ByteNumberFromContent(i, textureOffset,PWAD);
 			textureOffset = textureOffset + 2;
 			
-			WAD.textures[j].patches[k].stepDir = read2ByteNumberFromContent(i, textureOffset);
+			PWAD.textures[j].patches[k].stepDir = read2ByteNumberFromContent(i, textureOffset,PWAD);
 			textureOffset = textureOffset + 2;
 		
-			WAD.textures[j].patches[k].colorMap = read2ByteNumberFromContent(i, textureOffset);
+			PWAD.textures[j].patches[k].colorMap = read2ByteNumberFromContent(i, textureOffset,PWAD);
 			textureOffset = textureOffset + 2;
 		
 		}	
@@ -1924,17 +1925,13 @@ function parseTextureDirectory(i)
 console.log('Parsing Texture Directory Complete');
 }
 
-
-
-
-
-
-function LoadFile(evt)
+function LoadFile()
 {
 	var reader = new FileReader();
 	reader.onerror = errorHandler;
 	reader.onload = completeHandler;
-	reader.readAsBinaryString(evt.target.files[0]);
+	//File is the one selected in fileloader element, make this modular later
+	reader.readAsBinaryString(document.getElementById('fileloader').files[0]);
 }
 
 function errorHandler(evt)
@@ -1955,13 +1952,22 @@ function errorHandler(evt)
 
 function completeHandler(evt)
 {
+PWAD.file = "";
 
-	WAD.file = evt.target.result;
+PWAD.header = new Object();
+PWAD.lumps = new Array();
+PWAD.palette = new Array();
+PWAD.textures = new Array();
+PWAD.pnames = new Array();
+PWAD.patches = new Array();
+PWAD.maps = new Array();
 
-	LoadHeader();
-	LoadDirectory();
+PWAD.file = evt.target.result;
+PWAD.context = new AudioContext();
 
-	parseWAD();
+	LoadPWADHeader();
+	LoadPWADDirectory();
+	parsePWAD();
 	
 	//parse the default values
 	//need to check if it's empty
@@ -1987,74 +1993,7 @@ function completeHandler(evt)
 	
 }
 
-// Utility Functions
 
-function read4ByteCharacters(location)
-{
-	var output = WAD.file.slice(location, location+4);
-
-	return output;
-}
-
-function read8ByteCharacters(location)
-{
-	var output = WAD.file.slice(location, location+8);
-
-	return output;
-}
-
-function read8ByteCharactersFromContent(i,location)
-{
-	var output = WAD.lumps[i].content.slice(location, location+8);
-	return output;
-}
-
-function read4ByteNumber(location)
-{
-	var output = WAD.file.charCodeAt(location)*(1) + WAD.file.charCodeAt(location+1)*(256) + WAD.file.charCodeAt(location+2)*(256*256) + WAD.file.charCodeAt(location+3)*(256*256*256);
-	return output;
-	
-}
-
-function read1ByteNumberFromContent(i, location)
-{
-	return WAD.lumps[i].content.charCodeAt(location);
-}
-
-
-
-function read2ByteSignedNumberFromContent(i, location)
-{
-	var number = WAD.lumps[i].content.charCodeAt(location) + WAD.lumps[i].content.charCodeAt(location + 1)*(256);
-	
-	
-	if (number > 32767)
-		{
-		number = number - 65536;
-		}
-		
-	return number;
-}
-
-
-function read2ByteNumberFromContent(i, location)
-{
-	return WAD.lumps[i].content.charCodeAt(location) + WAD.lumps[i].content.charCodeAt(location + 1)*(256);
-}
-
-function read4ByteNumberFromContent(i, location)
-{
-	return WAD.lumps[i].content.charCodeAt(location) + WAD.lumps[i].content.charCodeAt(location + 1)*(256) + WAD.lumps[i].content.charCodeAt(location + 2)*(256*256) + WAD.lumps[i].content.charCodeAt(location + 3)*(256*256*256);
-}
-/*
-function setPixel(x, y, r, g, b, a) {
-    var index = (x + y * imageData.width) * 4;
-    imageData.data[index+0] = r;
-    imageData.data[index+1] = g;
-    imageData.data[index+2] = b;
-    imageData.data[index+3] = a;
-}
-*/
 function setPixel(x, width, y, height, r, g, b, a) {
     
     if ((x >= width)||(x < 0)||(y>=height)||(y<0))
@@ -2073,9 +2012,9 @@ function findLump(name)
 {
 //remove
 console.log(name);
-	for (var i=0; i<WAD.header.numlumps; i++)
+	for (var i=0; i<PWAD.header.numlumps; i++)
 	{
-		if (WAD.lumps[i].name == name)
+		if (PWAD.lumps[i].name == name)
 		{return i;}
 	}
 
@@ -2878,7 +2817,7 @@ canvas.height = 256;
 
 var ctx = canvas.getContext("2d");
 
-//var palettes = WAD.lumps[i].content;
+//var palettes = PWAD.lumps[i].content;
 
 var pal_i = 0;
 
@@ -2887,10 +2826,10 @@ for (var i=0; i<256; i++)
 	ctx.fillStyle = 'rgb('+defaultPalette[pal_i]+','+defaultPalette[pal_i+1]+','+defaultPalette[pal_i + 2]+')';
 	ctx.fillRect(Math.floor(i/16)*16,i%16*16, 16, 16);
 
-	WAD.palette[i] = new Object();
-	WAD.palette[i].r = defaultPalette[pal_i];
-	WAD.palette[i].g = defaultPalette[pal_i+1];
-	WAD.palette[i].b = defaultPalette[pal_i+2];
+	PWAD.palette[i] = new Object();
+	PWAD.palette[i].r = defaultPalette[pal_i];
+	PWAD.palette[i].g = defaultPalette[pal_i+1];
+	PWAD.palette[i].b = defaultPalette[pal_i+2];
 	
 		pal_i = pal_i + 3;
 }
